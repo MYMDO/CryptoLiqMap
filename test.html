@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><title>WebSocket Test</title></head>
+<body>
+<h1>WebSocket Test Page</h1>
+<div id="log"></div>
+<script>
+const log = (msg) => {
+    document.getElementById('log').innerHTML += '<p>' + msg + '</p>';
+    console.log(msg);
+};
+['binance', 'bybit', 'okx'].forEach(ex => {
+    let url;
+    if (ex === 'binance') url = 'wss://fstream.binance.com/stream?streams=!forceOrder@arr';
+    else if (ex === 'bybit') url = 'wss://stream.bybit.com/v5/public/linear';
+    else url = 'wss://ws.okx.com:8443/ws/v5/public';
+    
+    log('Connecting to ' + ex + '...');
+    const ws = new WebSocket(url);
+    ws.onopen = () => log('✅ ' + ex + ' connected!');
+    ws.onmessage = (ev) => {
+        log('📩 ' + ex + ' got data: ' + ev.data.substring(0, 100) + '...');
+        ws.close();
+    };
+    ws.onerror = (e) => log('❌ ' + ex + ' error');
+    ws.onclose = () => log('🔴 ' + ex + ' closed');
+});
+</script>
+</body>
+</html>
