@@ -13,6 +13,7 @@
             min-height: 100vh; 
             padding: 1rem; 
         }
+        @media (min-width: 768px) { body { padding: 2rem; } }
         .container { max-width: 1280px; margin: 0 auto; }
         h1 { font-size: 1.875rem; font-weight: 700; margin-bottom: 1.5rem; }
         h1 span:nth-child(1) { color: #3b82f6; }
@@ -30,7 +31,7 @@
         .connected { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
         .disconnected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-        .card { background: #111827; border: 1px solid #374151; border-radius: 0.5rem; padding: 1rem; }
+        .card { background: #111827; border: 1px solid #374151; padding: 1rem; border-radius: 0.5rem; }
         .label { font-size: 0.875rem; color: #9ca3af; margin-bottom: 0.25rem; }
         .value { font-size: 1.5rem; font-weight: 700; }
         .content { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
@@ -60,14 +61,14 @@
         <div class="stats" id="stats"></div>
         <div class="content">
             <div>
-                <h2 style="margin-bottom:0.75rem;">Liquidation Heatmap</h2>
+                <h2 style="margin-bottom: 0.75rem;">Liquidation Heatmap</h2>
                 <div class="heatmap-box">
                     <canvas id="canvas"></canvas>
-                    <div class="overlay" id="overlay">Waiting for liquidation data... (Check console for debug info)</div>
+                    <div class="overlay" id="overlay">Waiting for liquidation data... (Open console to see debug info)</div>
                 </div>
             </div>
             <div>
-                <h2 style="margin-bottom:0.75rem;">Live Feed</h2>
+                <h2 style="margin-bottom: 0.75rem;">Live Feed</h2>
                 <div class="feed-box" id="feed"></div>
             </div>
         </div>
@@ -122,9 +123,7 @@
                 if (timeAgo > 3600) timeStr = Math.floor(timeAgo / 3600) + 'h ago';
                 
                 return '<div class="feed-item ' + (isLong ? 'long' : 'short') + '">' +
-                    '<div class="feed-header"><span><span class="symbol">' + l.symbol + '</span>' +
-                    '<span class="side ' + (isLong ? 'side-long' : 'side-short') + '">' + 
-                    (isLong ? 'SHORT Liq' : 'LONG Liq') + '</span></span>' +
+                    '<div class="feed-header"><span><span class="symbol">' + l.symbol + '</span><span class="side ' + (isLong ? 'side-long' : 'side-short') + '">' + (isLong ? 'SHORT Liq' : 'LONG Liq') + '</span></span>' +
                     '<span class="time">' + timeStr + '</span></div>' +
                     '<div class="details">Price: $' + l.price.toLocaleString() + ' | Qty: ' + l.quantity.toFixed(4) + ' | $' + (l.value / 1000).toFixed(1) + 'k</div>' +
                     '<div class="exchange">' + l.exchange.toUpperCase() + '</div></div>';
@@ -216,21 +215,18 @@
                     const data = JSON.parse(ev.data);
                     let liq = null;
 
-                    if (ex === 'binance') {
-                        const d = data.data || data;
-                        if (d && d.e === 'forceOrder') {
-                            const o = d.o || d;
-                            liq = {
-                                id: Date.now() + '-' + Math.random(),
-                                symbol: o.s || '',
-                                side: o.S === 'BUY' ? 'SELL' : 'BUY',
-                                price: parseFloat(o.p || o.ap) || 0,
-                                quantity: parseFloat(o.q || o.l || o.z) || 0,
-                                value: (parseFloat(o.p || o.ap) || 0) * (parseFloat(o.q || o.l || o.z) || 0),
-                                timestamp: d.E || Date.now(),
-                                exchange: ex
-                            };
-                        }
+                    if (ex === 'binance' && data.data && data.data.e === 'forceOrder') {
+                        const o = data.data.o;
+                        liq = {
+                            id: Date.now() + '-' + Math.random(),
+                            symbol: o.s || '',
+                            side: o.S === 'BUY' ? 'SELL' : 'BUY',
+                            price: parseFloat(o.p || o.ap) || 0,
+                            quantity: parseFloat(o.q || o.l || o.z) || 0,
+                            value: (parseFloat(o.p || o.ap) || 0) * (parseFloat(o.q || o.l || o.z) || 0),
+                            timestamp: data.data.E || Date.now(),
+                            exchange: ex
+                        };
                     }
 
                     if (ex === 'bybit' && data.topic && data.topic.includes('liquidation')) {
