@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CryptoLiqMap - Real-time Liquidation Map</title>
+    <title>CryptoLiqMap</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #ffffff; min-height: 100vh; }
-        .container { max-width: 1280px; margin: 0 auto; padding: 1rem; }
+        body { font-family: sans-serif; background: #0a0a0a; color: white; min-height: 100vh; padding: 1rem; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .title { font-size: 1.875rem; font-weight: 700; }
         .title span:nth-child(1) { color: #3b82f6; }
         .title span:nth-child(2) { color: #eab308; }
         .title span:nth-child(3) { color: #22c55e; }
-        .btn { padding: 0.5rem; border-radius: 0.5rem; border: none; background: #1f2937; color: white; cursor: pointer; font-size: 1rem; }
+        .btn { padding: 0.5rem 1rem; background: #1f2937; color: white; border: none; border-radius: 0.5rem; cursor: pointer; }
         .btn:hover { background: #374151; }
         .status { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
-        .badge { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; }
+        .badge { padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; }
         .connected { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
         .disconnected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-        .card { background: #111827; border: 1px solid #374151; border-radius: 0.5rem; padding: 1rem; }
+        .card { background: #111827; border: 1px solid #374151; padding: 1rem; border-radius: 0.5rem; }
         .label { font-size: 0.875rem; color: #9ca3af; margin-bottom: 0.25rem; }
         .value { font-size: 1.5rem; font-weight: 700; }
         .content { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
@@ -29,12 +28,13 @@
         .overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9ca3af; }
         .feed-box { background: #111827; border: 1px solid #374151; border-radius: 0.5rem; padding: 1rem; height: 24rem; overflow-y: auto; }
         .feed-item { padding: 0.75rem; border-left: 4px solid; margin-bottom: 0.5rem; border-radius: 0.25rem; }
-        .long-item { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
-        .short-item { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .long { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .short { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
         .feed-header { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
         .symbol { font-family: monospace; font-weight: 700; }
-        .side-long { color: #22c55e; font-size: 0.875rem; font-weight: 600; margin-left: 0.5rem; }
-        .side-short { color: #ef4444; font-size: 0.875rem; font-weight: 600; margin-left: 0.5rem; }
+        .side { font-size: 0.875rem; font-weight: 600; margin-left: 0.5rem; }
+        .side-long { color: #22c55e; }
+        .side-short { color: #ef4444; }
         .time { font-size: 0.75rem; color: #6b7280; }
         .details { font-size: 0.875rem; color: #d1d5db; margin-top: 0.25rem; }
         .exchange { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
@@ -43,33 +43,29 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1 class="title">
-                    <span>Crypto</span><span>Liq</span><span>Map</span>
-                </h1>
-            </div>
-            <button class="btn" onclick="toggleTheme()">🌙</button>
+    <div class="header">
+        <div>
+            <h1 class="title"><span>Crypto</span><span>Liq</span><span>Map</span></h1>
         </div>
-        <div class="status" id="statusBar"></div>
-        <div class="stats" id="statsBar"></div>
-        <div class="content">
-            <div>
-                <h2>Liquidation Heatmap</h2>
-                <div class="heatmap-box">
-                    <canvas id="heatmapCanvas"></canvas>
-                    <div class="overlay" id="overlay">Waiting for liquidation data...</div>
-                </div>
-            </div>
-            <div>
-                <h2>Live Feed</h2>
-                <div class="feed-box" id="feedBox"></div>
+        <button class="btn" onclick="toggleTheme()">🌙</button>
+    </div>
+    <div class="status" id="statusBar"></div>
+    <div class="stats" id="statsBar"></div>
+    <div class="content">
+        <div>
+            <h2>Liquidation Heatmap</h2>
+            <div class="heatmap-box">
+                <canvas id="heatmapCanvas"></canvas>
+                <div class="overlay" id="overlay">Waiting for liquidation data...</div>
             </div>
         </div>
-        <div class="footer">
-            <p>Powered by public WebSocket APIs | <a href="https://github.com/MYMDO/CryptoLiqMap">GitHub</a></p>
+        <div>
+            <h2>Live Feed</h2>
+            <div class="feed-box" id="feedBox"></div>
         </div>
+    </div>
+    <div class="footer">
+        <p>Powered by public WebSocket APIs | <a href="https://github.com/MYMDO/CryptoLiqMap">GitHub</a></p>
     </div>
 
     <script>
@@ -80,22 +76,25 @@
             status: { binance: false, bybit: false, okx: false }
         };
 
+        // Theme
         function toggleTheme() {
             state.theme = state.theme === 'dark' ? 'light' : 'dark';
             localStorage.setItem('theme', state.theme);
             document.body.style.background = state.theme === 'dark' ? '#0a0a0a' : '#f9fafb';
-            document.body.style.color = state.theme === 'dark' ? '#ffffff' : '#111827';
+            document.body.style.color = state.theme === 'dark' ? 'white' : '#111827';
         }
 
+        // Status
         function updateStatus() {
-            const bar = document.getElementById('statusBar');
-            bar.innerHTML = ['binance', 'bybit', 'okx'].map(ex => {
-                const isConn = state.status[ex];
-                return '<span class="badge ' + (isConn ? 'connected' : 'disconnected') + '">' +
-                    (isConn ? '🟢 ' : '🔴 ') + ex + '</span>';
-            }).join('');
+            document.getElementById('statusBar').innerHTML = 
+                ['binance', 'bybit', 'okx'].map(ex => {
+                    const isConn = state.status[ex];
+                    return '<span class="badge ' + (isConn ? 'connected' : 'disconnected') + '">' +
+                        (isConn ? '🟢 ' : '🔴 ') + ex + '</span>';
+                }).join('');
         }
 
+        // Stats
         function updateStats() {
             const now = Date.now();
             const last24h = now - 86400000;
@@ -104,15 +103,17 @@
             const longs = recent.filter(l => l.side === 'SELL').reduce((s, l) => s + l.value, 0);
             const shorts = recent.filter(l => l.side === 'BUY').reduce((s, l) => s + l.value, 0);
             const biggest = recent.reduce((max, l) => l.value > max.value ? l : max, { value: 0, symbol: '', price: 0 });
-            
+            const connCount = Object.values(state.status).filter(Boolean).length;
+
             document.getElementById('statsBar').innerHTML = [
                 '<div class="card"><div class="label">24h Liquidations</div><div class="value">$' + (total / 1000000).toFixed(2) + 'M</div></div>',
                 '<div class="card"><div class="label">Long / Short</div><div class="value" style="color:#ef4444">$' + (longs / 1000000).toFixed(1) + 'M</div><div style="color:#22c55e">$' + (shorts / 1000000).toFixed(1) + 'M</div></div>',
                 '<div class="card"><div class="label">Largest</div><div class="value" style="color:#eab308">$' + (biggest.value / 1000).toFixed(1) + 'k</div><div style="font-size:0.75rem;color:#9ca3af">' + biggest.symbol + ' @ $' + biggest.price.toLocaleString() + '</div></div>',
-                '<div class="card"><div class="label">Exchanges</div><div class="value" style="color:#22c55e">' + Object.values(state.status).filter(Boolean).length + '/3</div></div>'
+                '<div class="card"><div class="label">Exchanges</div><div class="value" style="color:#22c55e">' + connCount + '/3</div></div>'
             ].join('');
         }
 
+        // Feed
         function updateFeed() {
             const box = document.getElementById('feedBox');
             const items = state.liquidations.slice(0, 50).map(l => {
@@ -121,8 +122,8 @@
                 let timeStr = timeAgo + 's ago';
                 if (timeAgo > 60) timeStr = Math.floor(timeAgo / 60) + 'm ago';
                 if (timeAgo > 3600) timeStr = Math.floor(timeAgo / 3600) + 'h ago';
-                return '<div class="feed-item ' + (isLong ? 'long-item' : 'short-item') + '">' +
-                    '<div class="feed-header"><span><span class="symbol">' + l.symbol + '</span><span class="' + (isLong ? 'side-long' : 'side-short') + '">' + (isLong ? 'SHORT Liq' : 'LONG Liq') + '</span></span>' +
+                return '<div class="feed-item ' + (isLong ? 'long' : 'short') + '">' +
+                    '<div class="feed-header"><span><span class="symbol">' + l.symbol + '</span><span class="side ' + (isLong ? 'side-long' : 'side-short') + '">' + (isLong ? 'SHORT Liq' : 'LONG Liq') + '</span></span>' +
                     '<span class="time">' + timeStr + '</span></div>' +
                     '<div class="details">Price: $' + l.price.toLocaleString() + ' | Qty: ' + l.quantity.toFixed(4) + ' | $' + (l.value / 1000).toFixed(1) + 'k</div>' +
                     '<div class="exchange">' + l.exchange.toUpperCase() + '</div></div>';
@@ -130,6 +131,7 @@
             box.innerHTML = '<h3 style="margin-bottom:1rem;">Live Liquidations (' + state.liquidations.length + ')</h3>' + items;
         }
 
+        // Heatmap
         function drawHeatmap() {
             const canvas = document.getElementById('heatmapCanvas');
             if (!canvas) return;
@@ -137,25 +139,25 @@
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
             const w = canvas.width, h = canvas.height;
-            
+
             ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, w, h);
-            
+
             if (state.liquidations.length === 0) return;
             document.getElementById('overlay').style.display = 'none';
-            
+
             const priceMap = {};
             state.liquidations.forEach(l => {
                 const bucket = Math.round(l.price / 100) * 100;
                 priceMap[bucket] = (priceMap[bucket] || 0) + l.value;
             });
-            
+
             const prices = Object.keys(priceMap).map(Number).sort((a, b) => a - b);
             if (prices.length === 0) return;
-            
+
             const minP = prices[0], maxP = prices[prices.length - 1];
             const maxV = Math.max(...Object.values(priceMap));
-            
+
             prices.forEach(p => {
                 const x = ((p - minP) / (maxP - minP)) * w;
                 const barH = (priceMap[p] / maxV) * h * 0.8;
@@ -163,16 +165,17 @@
                 const liqsHere = state.liquidations.filter(l => Math.round(l.price / 100) * 100 === p);
                 const hasLong = liqsHere.some(l => l.side === 'SELL');
                 const hasShort = liqsHere.some(l => l.side === 'BUY');
-                
+
                 if (hasLong && hasShort) ctx.fillStyle = 'rgba(255, 165, 0, 0.6)';
                 else if (hasLong) ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
                 else if (hasShort) ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
                 else return;
-                
+
                 ctx.fillRect(x, y, Math.max(2, w / prices.length), barH);
             });
         }
 
+        // Add liquidation
         function addLiq(liq) {
             console.log('Liquidation:', liq);
             state.liquidations.unshift(liq);
@@ -189,37 +192,82 @@
             if (ex === 'binance') url = 'wss://fstream.binance.com/stream?streams=!forceOrder@arr';
             else if (ex === 'bybit') url = 'wss://stream.bybit.com/v5/public/linear';
             else url = 'wss://ws.okx.com:8443/ws/v5/public';
-            
+
             const ws = new WebSocket(url);
             ws.onopen = () => {
                 console.log(ex + ' connected!');
                 state.status[ex] = true;
                 updateStatus();
                 if (ex === 'okx') {
-                    ws.send(JSON.stringify({ op: 'subscribe', args: [{ channel: 'liquidation-orders', instType: 'USDT-FUTURES' }]));
+                    ws.send(JSON.stringify({
+                        op: 'subscribe',
+                        args: [{ channel: 'liquidation-orders', instType: 'USDT-FUTURES' }]
+                    }));
                 }
             };
             ws.onmessage = (ev) => {
                 try {
                     const data = JSON.parse(ev.data);
                     let liq = null;
+
                     if (ex === 'binance' && data.data && data.data.e === 'forceOrder') {
                         const o = data.data.o;
-                        liq = { id: Date.now() + '-' + Math.random(), symbol: o.s, side: o.S === 'BUY' ? 'SELL' : 'BUY', price: parseFloat(o.p || o.ap), quantity: parseFloat(o.q || o.l), value: parseFloat(o.p || o.ap) * parseFloat(o.q || o.l), timestamp: data.data.E, exchange: ex };
+                        liq = {
+                            id: Date.now() + '-' + Math.random(),
+                            symbol: o.s,
+                            side: o.S === 'BUY' ? 'SELL' : 'BUY',
+                            price: parseFloat(o.p || o.ap),
+                            quantity: parseFloat(o.q || o.l),
+                            value: parseFloat(o.p || o.ap) * parseFloat(o.q || o.l),
+                            timestamp: data.data.E,
+                            exchange: ex
+                        };
                     }
+
                     if (ex === 'bybit' && data.topic && data.topic.includes('liquidation')) {
-                        const d = data.data && data.data[0] ? data.data[0] : data;
-                        liq = { id: Date.now() + '-' + Math.random(), symbol: d.s, side: d.S === 'Buy' ? 'SELL' : 'BUY', price: parseFloat(d.p), quantity: parseFloat(d.v), value: parseFloat(d.p) * parseFloat(d.v), timestamp: d.T, exchange: ex };
+                        const d = data.data && data.data[0] ? data.data[0] : (data.data || data);
+                        liq = {
+                            id: Date.now() + '-' + Math.random(),
+                            symbol: d.s,
+                            side: d.S === 'Buy' ? 'SELL' : 'BUY',
+                            price: parseFloat(d.p),
+                            quantity: parseFloat(d.v),
+                            value: parseFloat(d.p) * parseFloat(d.v),
+                            timestamp: d.T,
+                            exchange: ex
+                        };
                     }
+
                     if (ex === 'okx' && data.data && data.data[0] && data.data[0].instId) {
                         const d = data.data[0];
-                        liq = { id: Date.now() + '-' + Math.random(), symbol: d.instId.replace('-', ''), side: d.side === 'buy' ? 'SELL' : 'BUY', price: parseFloat(d.fillPx || d.px), quantity: parseFloat(d.fillSz || d.sz), value: parseFloat(d.fillPx || d.px) * parseFloat(d.fillSz || d.sz), timestamp: parseInt(d.ts), exchange: ex };
+                        liq = {
+                            id: Date.now() + '-' + Math.random(),
+                            symbol: d.instId.replace('-', ''),
+                            side: d.side === 'buy' ? 'SELL' : 'BUY',
+                            price: parseFloat(d.fillPx || d.px),
+                            quantity: parseFloat(d.fillSz || d.sz),
+                            value: parseFloat(d.fillPx || d.px) * parseFloat(d.fillSz || d.sz),
+                            timestamp: parseInt(d.ts),
+                            exchange: ex
+                        };
                     }
+
                     if (liq && liq.value > 10000) addLiq(liq);
-                } catch(e) { console.error(e); }
+                } catch (e) {
+                    console.error('Error parsing ' + ex + ':', e);
+                }
             };
-            ws.onerror = () => { console.log(ex + ' error'); state.status[ex] = false; updateStatus(); };
-            ws.onclose = () => { console.log(ex + ' closed'); state.status[ex] = false; updateStatus(); setTimeout(() => location.reload(), 5000); };
+            ws.onerror = (e) => {
+                console.error(ex + ' error:', e);
+                state.status[ex] = false;
+                updateStatus();
+            };
+            ws.onclose = () => {
+                console.log(ex + ' closed, reconnecting...');
+                state.status[ex] = false;
+                updateStatus();
+                setTimeout(() => location.reload(), 5000);
+            };
         });
 
         updateStatus();
