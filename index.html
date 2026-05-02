@@ -412,7 +412,7 @@
 
         function connectExchange(exchange) {
             const urls = {
-                binance: 'wss://fstream.binance.com/ws/!forceOrder@arr',
+                binance: 'wss://fstream.binance.com/stream?streams=!forceOrder@arr',
                 bybit: 'wss://stream.bybit.com/v5/public/linear',
                 okx: 'wss://ws.okx.com:8443/ws/v5/public'
             };
@@ -421,6 +421,7 @@
             wsConnections[exchange] = ws;
 
             ws.onopen = () => {
+                console.log(exchange + ' connected');
                 state.exchangeStatus[exchange] = true;
                 updateStatus();
                 if (exchange === 'okx') {
@@ -451,7 +452,7 @@
                     }
 
                     if (exchange === 'bybit' && data.topic && data.topic.includes('liquidation')) {
-                        const d = (data.data && data.data[0]) || data;
+                        const d = data.data && data.data[0] ? data.data[0] : (data.data || data);
                         liq = {
                             id: (d.T || Date.now()) + '-' + Math.random(),
                             symbol: d.s || '',
@@ -460,7 +461,21 @@
                             quantity: parseFloat(d.v || 0),
                             value: parseFloat(d.p || 0) * parseFloat(d.v || 0),
                             timestamp: d.T || Date.now(),
-                            exchange
+                            exchange: exchange
+                        };
+                    }
+
+                    if (exchange === 'okx' && data.arg && data.arg.channel === 'liquidation-orders') {
+                        const d = data.data && data.data[0] ? data.data[0] : (data.data || data);
+                        liq = {
+                            id: (d.tradeId || Date.now()) + '-' + Math.random(),
+                            symbol: (d.instId || '').replace('-', '').toUpperCase(),
+                            side: d.side === 'buy' ? 'SELL' : 'BUY',
+                            price: parseFloat(d.fillPx || d.px || 0),
+                            quantity: parseFloat(d.fillSz || d.sz || 0),
+                            value: parseFloat(d.fillPx || d.px || 0) * parseFloat(d.fillSz || d.sz || 0),
+                            timestamp: parseInt(d.ts) || Date.now(),
+                            exchange: exchange
                         };
                     }
 
@@ -486,7 +501,8 @@
                 }
             };
 
-            ws.onerror = () => {
+            ws.onerror = (e) => {
+                console.error(exchange + ' error:', e);
                 state.exchangeStatus[exchange] = false;
                 updateStatus();
             };
@@ -502,6 +518,7 @@
 
         // ==================== Liquidation Handling ====================
         function addLiquidation(liq) {
+            console.log('Liquidation received:', liq);
             state.liquidations.unshift(liq);
             if (state.liquidations.length > 500) {
                 state.liquidations.pop();
